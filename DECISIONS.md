@@ -1,37 +1,60 @@
 # DECISIONS
 
-## Diabetic definition (my choice)
-- Diabetic = diabetes drug AND (note OR HbA1c >= 6.5 OR Diabetology visit). PCOS-only metformin excluded.
-- Count (verified by running evidence.py / duplicates.py / overdue.py):
-  - 87 records meet the diabetic rule (drug AND note/HbA1c>=6.5/Diabetology)
-  - 86 people - Joseph Dsouza / Joseph D'Souza (SVH027863/SVH029322) counted once, flagged as possible duplicate
-  - 85 - GDM patient SVH027966 moved to doctor review, not called
-  - 79 - 6 patients died or transferred care (see below)
-- Doctor review, not called: HbA1c >= 6.5 only (9, some had a high result and no follow-up), HbA1c with no unit (values 65-68, likely mmol/mol), GDM, prediabetes/IGT, drug-only
-- HbA1c >= 6.5 cutoff: ADA Standards of Care (Section 2, Diagnosis and Classification of Diabetes, Table 2.1: https://diabetesjournals.org/care/article/49/Supplement_1/S27/163926/2-Diagnosis-and-Classification-of-Diabetes)
+## 1. Terms I had to define
 
-## Not called: died / transferred
-| MRN | Visit | Date | Status | Note |
-|---|---|---|---|---|
-| SVH025339 | V042478 | 2025-03-21 | died | "Attender came for records. Informed pt expired at home last month. File closed" |
-| SVH026086 | V042492 | 2025-04-04 | died | "adm with sepsis, DKA; shifted to ICU; pt expired on 4/4/2025; death summary given to attenders" |
-| SVH025698 | V042743 | 2025-10-10 | died | "brought with chest pain, sweating x 2 hrs. ECG: ant wall STEMI. sudden collapse, CPR x 30 min, could not be revived. declared expired 5:40 am" |
-| SVH024860 | V042727 | 2025-09-24 | transferred | "Relocated to Hyderabad. Transfer of care letter issued. To f/u with local physician, records handed over." |
-| SVH025512 | V042828 | 2025-12-03 | transferred | "came for transfer summary; will continue f/u near native place; transferred care to another hospital" |
-| SVH028346 | V042950 | 2026-02-10 | transferred | "Review. FBS 104. BP 131/82. Adv diet + daily walk. r/v 3/12. Pt relocating to Pune with son. Transferred care to another hospital, summary and reports given." |
+**As-of date.** Passed in (`--as-of 2026-09-29`, the export's last date), never today's date, so the same export always gives the same list.
 
-## Duplicates
-- 4 pairs flagged, not merged. Linked for the "visited since?" check (Padma Reddy visited Jul 2026 under the other record)
-- 3 shared phones - front desk asks for the patient by name
+**Diabetic** = on a diabetes drug AND at least one of: a note saying diabetic, HbA1c >= 6.5 %, a Diabetology visit. Gestational diabetes (GDM, diabetes in pregnancy) and metformin for PCOS do not count. *Why:* a drug alone isn't proof (metformin is also used for PCOS); a lab result alone has no treating doctor behind it. 87 records -> 86 people (one duplicate pair) -> 85 (GDM moved to doctor review) -> 79 (6 died or transferred).
+*Leaves out:* diet-only diabetics. *Wrongly includes:* data-entry errors in notes or prescriptions.
 
-## Overdue definition (my choice)
-Numbers below: the 79 people, AS_OF 2026-09-29, linked duplicate pairs counted as one person.
+**Diabetes-related visit** = Diabetology, OR a diabetes drug prescribed at that visit, OR the note mentions diabetes / HbA1c / sugars / FBS / PPBS / GRBS / RBS / "F # / PP #". *Why:* a dental, ENT or skin visit doesn't check diabetes. *Misses:* a diabetes visit written without these words (SVH029007, flagged).
 
-- **Diabetes-related visit** = Diabetology, OR a diabetes drug prescribed at that visit (by visit_id), OR the note mentions diabetes / HbA1c / sugars / FBS / PPBS / GRBS / RBS or "F # / PP #" readings.
-  - Without GRBS/RBS and "F # / PP #", 3 clear diabetes follow-ups (SVH025331, SVH025948, SVH026465) were missed: 9 people had a non-diabetes last visit instead of 6.
-- **Option B:** due date from the last diabetes-related visit; only a later diabetes-related visit counts as followed up. Reason: a dental/ENT/skin visit doesn't check diabetes.
-  - Overdue: B = 41. (Hospital question 3 still open - option A, where any later visit counts, would give 35. The old rule, last visit of any kind, gave 36.)
-  - The 6 who are overdue under B but not A: SVH026153 (later ENT), SVH026193 (later Dental), SVH027082 + SVH030772 (later thyroid visit), SVH027261 (later Dermatology), SVH027925 + SVH029107 (later Orthopaedics), SVH029007 (see below).
-- **Due date:** next_appointment on that visit > interval in its note ("review 6 wks", "r/v 3/12", "rpt HbA1c 3 months") > DEFAULT. Lab repeats count only for diabetes tests (HbA1c/FBS/PPBS); "rpt TSH 6 wks" is ignored.
-- **DEFAULT 3 months, GRACE 14 days.** ADA: HbA1c every 3 months if not at target, twice a year if stable (Standards of Care, Section 6, Glycemic Goals: https://diabetesjournals.org/care/article/49/Supplement_1/S132/163927). DEFAULT 6 months would change only 2 people (SVH029625, SVH029767): 41 -> 39.
-- **SVH029007:** kept on the list, flagged "last visit 'dose stepped up' may be a diabetes visit - overdue either way". Last visit 2026-01-26 General Medicine: "Routine f/u. Dose stepped up. Review after 3 months"; no diabetes drug or reading recorded at that visit.
+**Follow-up / due date** = from the last diabetes-related visit: its next_appointment, else the interval in its note ("review 6 wks", "r/v 3/12"), else 3 months. Lab repeats count only for HbA1c/FBS/PPBS ("rpt TSH 6 wks" is ignored). *Why 3 months:* ADA advises HbA1c every 3 months if not at target, twice a year if stable; I took the cautious end.
+
+**Overdue** = due date + 14 days grace is before the as-of date, AND no later diabetes-related visit (under either record of a duplicate pair). Result: 41. If any later visit counted, it would be 35; with a 6-month default, 39. *Wrongly includes:* patients followed up elsewhere or by phone.
+
+## 2. Data problems and what I did
+Every change is logged in `output/data_issues.csv`; nothing dropped or merged.
+
+- **Lab dates in 3 formats** (`03/04/2024`, `14 Oct 23`, `2 Oct 23`). For the slash dates, 238 have a first number > 12 and none a second number > 12, so they are DD/MM. All converted to YYYY-MM-DD; any other format stops the script.
+- **Two lab dates after the export end** (2026-12-19 and 2027-02-27, SVH027355 and SVH030138). Not fixed; SVH027355 (on the call list) is flagged "lab result dated after export end - check". Neither patient's status depends on them.
+- **HbA1c under 3 names** (HbA1c, A1C, Glycated Hb); Glycated Hb in mmol/mol converted to %: % = 0.09148 x mmol/mol + 2.152 (NGSP).
+- **Glucose under several names** (FBS, Glucose (F), PPBS...) and some in mmol/L; converted to mg/dL (x 18, standard mmol/L -> mg/dL factor, from glucose molar mass 180 g/mol).
+- **12 lab rows with no unit**, including 3 HbA1c of 65-68 (probably mmol/mol). Flagged, not converted or guessed.
+- **Drug name variants** ("Metformin", "T. Metformin", "Tab. Metformin"): prefixes stripped, matched exactly against a hand-written list. Exact matching keeps "Adapalene gel" (acne) out; "Human Mixtard" (insulin) is in.
+- **Duplicate patients:** 4 pairs with the same date of birth, same phone and a similar name (e.g. "Md. Rafiq" / "Mohammed Rafiq"). Linked, not merged; Padma Reddy's July 2026 visit is under her second record.
+- **Shared phones:** 3 numbers with 3 people each. **Missing phones:** 8 patients, 3 on the call list.
+- **Died / transferred** is only in visit notes (3 each). Moved to "Not called" with the note quoted.
+- **Metformin for PCOS/PCOD** (4) and **GDM** (3) found in notes; excluded from "diabetic".
+
+## 3. Flagged for a person instead of decided
+- **Doctor review, do not call yet (16):** HbA1c >= 6.5 with no diabetes drug or note (8), HbA1c with no unit (2), GDM (3), prediabetes/IGT (3).
+- **Duplicate pairs:** shown on the list with the other record number; the hospital should merge them.
+- **SVH029007:** last visit "Dose stepped up. Review after 3 months" may be a diabetes visit. Overdue either way.
+- **HbA1c without units:** on the review list, and flagged on the call list for one patient.
+- **Shared phones:** front desk asks for the patient by name before giving the reason.
+
+## 4. What this can't be trusted for
+- Deaths or transfers not written in a visit note: such patients would still be called.
+- Patients treated at another hospital or clinic.
+- Diagnoses never recorded here; anything after 2026-09-29.
+- Notes are searched by keywords; unusual wording or spelling can be missed.
+- The 3-month default and 14-day grace are my choices, not the hospital's.
+- The 5 questions I sent to the hospital are still unanswered (question -> what I assumed -> what changes if the answer differs):
+  1. Only confirmed diabetics, or also prediabetes and pregnancy diabetes? -> Confirmed only; GDM and prediabetes go to doctor review. -> If included, those 6 move from doctor review to the call list (if overdue).
+  2. Default return interval and grace when no date is set? -> 3 months, 14 days. -> 6 months gives 39 instead of 41; other values change the count.
+  3. Does any visit count as follow-up, or only diabetes visits? -> Diabetes visits only (option B). -> Any visit gives 35 instead of 41.
+  4. How will the front desk use the list, and who should never be called? -> Printable HTML/CSV; died/transferred found in notes excluded. -> Other exclusions (e.g. a do-not-call list) would need that data; a different format is a small change.
+  5. Duplicates and shared phones: show once or separately? -> Duplicates shown once, flagged with the other record; shared phones flagged. -> Separately would list 3 pairs as 6 rows and risk two calls to one person.
+
+## What I looked up
+- ADA Standards of Care 2026, Section 2 (HbA1c >= 6.5 % for diagnosis): https://diabetesjournals.org/care/article/49/Supplement_1/S27/163926/2-Diagnosis-and-Classification-of-Diabetes
+- ADA Standards of Care 2026, Section 6 (HbA1c testing frequency): https://diabetesjournals.org/care/article/49/Supplement_1/S132/163927
+- HbA1c mmol/mol to % conversion (NGSP): https://ngsp.org/ifccngsp.asp
+- Glucose mmol/L to mg/dL: x 18 (standard mmol/L -> mg/dL factor, from glucose molar mass 180 g/mol).
+- Medical shorthand: "r/v 3/12" = review in 3 months; "x 2/52" = for 2 weeks (symptom duration); GRBS = home blood sugar; F/PP = fasting / after-meal sugar; IGT = impaired glucose tolerance.
+
+## Where I disagreed with the agent / what it caught
+- **It caught:** my diabetes-visit definition missed GRBS and "F # / PP #" readings, so 3 real diabetes follow-ups looked like non-diabetes visits.
+- **It caught:** my first count of 81 didn't match my own rule (87); that led to the 87 -> 86 -> 85 -> 79 chain.
+- **It caught:** I called the 3 shared phones "family phones", but one number has 3 women with different surnames, so I changed the wording.
