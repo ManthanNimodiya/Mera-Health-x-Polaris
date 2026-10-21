@@ -1,0 +1,21 @@
+Hi Meenakshi,
+
+The list is ready: 41 diabetic patients who are overdue for a follow-up. Open call_list.html (in the output folder) in any web browser. Most overdue are first, with phone number, last visit and doctor.
+
+How they were chosen:
+- Diabetic: on diabetes medicine, and confirmed by a doctor's note, a blood test or a diabetes clinic visit.
+- Overdue: more than two weeks past the review date their doctor set, or 3 months after their last diabetes visit if no date was set.
+
+The page also lists:
+- 16 patients a doctor should look at first.
+- 10 not to call: 6 have died or moved to another hospital, and 4 take the medicine for a different condition.
+
+Some phone numbers are shared, so please ask for the patient by name before saying why you are calling. 3 patients have no phone number.
+
+To make it more accurate, could you tell me:
+1. Are deaths or moves recorded anywhere other than doctors' notes?
+2. If a doctor sets no review date, is 3 months the right wait?
+3. Should a visit to another department, like the dentist, count as a check-up?
+
+Thanks,
+Manthan
