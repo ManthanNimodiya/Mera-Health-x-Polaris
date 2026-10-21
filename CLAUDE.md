@@ -1,0 +1,5 @@
+- Never pick a definition for "diabetic", "overdue", or "follow-up" yourself. Propose options and ask me.
+- Never drop, merge, or modify rows silently. Every fix gets logged to output/data_issues.csv.
+- Never use datetime.now(). Use an AS_OF date passed as an argument.
+- Read all CSVs as strings first. No automatic date or number conversion.
+- Plain Python + pandas. Keep it simple, no unnecessary frameworks.
