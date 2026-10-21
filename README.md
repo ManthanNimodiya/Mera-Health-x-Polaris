@@ -34,3 +34,6 @@ Then open `output/call_list.html` (the same list is in `output/call_list.csv`).
 
 ## Definitions
 What counts as "diabetic", "diabetes-related visit", "due date" and "overdue", and why, is in `DECISIONS.md`. Data findings are in `NOTES.md`.
+
+## Agent transcripts
+transcripts/ contains the raw Claude Code session log (.jsonl, one JSON message per line), unedited.
