@@ -23,3 +23,15 @@
 ## Duplicates
 - 4 pairs flagged, not merged. Linked for the "visited since?" check (Padma Reddy visited Jul 2026 under the other record)
 - 3 shared phones - front desk asks for the patient by name
+
+## Overdue definition (my choice)
+Numbers below: the 79 people, AS_OF 2026-09-29, linked duplicate pairs counted as one person.
+
+- **Diabetes-related visit** = Diabetology, OR a diabetes drug prescribed at that visit (by visit_id), OR the note mentions diabetes / HbA1c / sugars / FBS / PPBS / GRBS / RBS or "F # / PP #" readings.
+  - Without GRBS/RBS and "F # / PP #", 3 clear diabetes follow-ups (SVH025331, SVH025948, SVH026465) were missed: 9 people had a non-diabetes last visit instead of 6.
+- **Option B:** due date from the last diabetes-related visit; only a later diabetes-related visit counts as followed up. Reason: a dental/ENT/skin visit doesn't check diabetes.
+  - Overdue: B = 41. (Hospital question 3 still open - option A, where any later visit counts, would give 35. The old rule, last visit of any kind, gave 36.)
+  - The 6 who are overdue under B but not A: SVH026153 (later ENT), SVH026193 (later Dental), SVH027082 + SVH030772 (later thyroid visit), SVH027261 (later Dermatology), SVH027925 + SVH029107 (later Orthopaedics), SVH029007 (see below).
+- **Due date:** next_appointment on that visit > interval in its note ("review 6 wks", "r/v 3/12", "rpt HbA1c 3 months") > DEFAULT. Lab repeats count only for diabetes tests (HbA1c/FBS/PPBS); "rpt TSH 6 wks" is ignored.
+- **DEFAULT 3 months, GRACE 14 days.** ADA: HbA1c every 3 months if not at target, twice a year if stable (Standards of Care, Section 6, Glycemic Goals: https://diabetesjournals.org/care/article/49/Supplement_1/S132/163927). DEFAULT 6 months would change only 2 people (SVH029625, SVH029767): 41 -> 39.
+- **SVH029007:** kept on the list, flagged "last visit 'dose stepped up' may be a diabetes visit - overdue either way". Last visit 2026-01-26 General Medicine: "Routine f/u. Dose stepped up. Review after 3 months"; no diabetes drug or reading recorded at that visit.
