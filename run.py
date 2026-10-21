@@ -136,6 +136,7 @@ def main():
 
     # Section 2: doctor review - not diabetic by the rule (or GDM), not gone.
     review_rows = []
+    pcos_rows = []
     for p in sorted((set(flags.index) - after_gdm) - gone):
         f = flags.loc[p]
         ev = evidence[evidence["person"] == p]
@@ -148,8 +149,15 @@ def main():
             drugs = ", ".join(dict.fromkeys(ev.loc[ev["type"] == "drug", "detail"]
                                             .str.replace(r"\s+\d.*$", "", regex=True)))
             pcos = visits[(visits["person"] == p) & visits["notes"].str.contains(PCOS)]
-            reasons.append(f"diabetes drug only ({drugs})"
-                           + (" - notes say PCOS/PCOD" if len(pcos) else ""))
+            if len(pcos) and not (f["hba1c_no_unit"] or f["note_gdm"]
+                                  or f["note_prediabetes"]):
+                last = pcos.sort_values("visit_date").iloc[-1]
+                pcos_rows.append({"name": patients.at[p, "name"], "mrn": p,
+                                  "status": "metformin for PCOS/PCOD, not diabetes",
+                                  "visit": f"{last['visit_id']} {last['visit_date']}",
+                                  "note": f'"{last["notes"]}"'})
+                continue
+            reasons.append(f"diabetes drug only ({drugs})")
         if f["hba1c_no_unit"]:
             reasons.append(f"HbA1c with no unit ({detail('hba1c_no_unit')})")
         if f["note_gdm"]:
@@ -171,6 +179,7 @@ def main():
         "visit": not_called["visit_id"] + " " + not_called["visit_date"],
         "note": '"' + not_called["notes"] + '"',
     })
+    gone_rows = pd.concat([gone_rows, pd.DataFrame(pcos_rows)], ignore_index=True)
 
     chain_html = "".join(f"<li>{n} {html.escape(label)}</li>" for label, n in chain)
     page = f"""<!doctype html>
