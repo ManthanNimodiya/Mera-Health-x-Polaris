@@ -3,7 +3,7 @@
 ## Metformin / insulin are not proof of diabetes
 Some diabetes drugs in `export/prescriptions.csv` are given for other reasons (found in `export/visits.csv` notes, all OBG / Dr. Kavya Menon):
 
-- **PCOS on metformin:** SVH025191, SVH029693, SVH030554. Metformin for PCOS, not diabetes.
+- **PCOS on metformin:** SVH025191, SVH029693, SVH030554, SVH028876 (written as "PCOD", HbA1c 5.4). Metformin for PCOS, not diabetes.
 - **GDM (gestational diabetes):** SVH027966 (metformin), SVH028326 (insulin), SVH028068 (diet only). Pregnancy-only diabetes; may resolve after delivery.
 - Related, no drug: SVH028864 "IGT" and SVH024742 "Prediabetes - HbA1c 6.2".
 
