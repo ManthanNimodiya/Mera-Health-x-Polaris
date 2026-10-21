@@ -99,6 +99,9 @@ def main():
              ("overdue - to call", len(on_list))]
 
     # Section 1: call list.
+    labs = read(OUT / "clean" / "lab_results.csv")
+    future_lab_people = {person_of.get(m, m)
+                         for m in labs.loc[labs["collected_on"] > as_of, "mrn"]}
     shared_count = shared.groupby("phone")["people_on_phone"].first()
     rows = []
     for p in on_list:
@@ -112,6 +115,8 @@ def main():
             row_flags.append("no phone")
         elif phone in shared_count.index:
             row_flags.append(f"shared phone ({shared_count[phone]} people)")
+        if p in future_lab_people:
+            row_flags.append("lab result dated after export end - check")
         if flags.at[p, "hba1c_no_unit"]:
             row_flags.append("HbA1c with no unit on file")
         if p in MANUAL_FLAGS:
