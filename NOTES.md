@@ -20,3 +20,10 @@ Dapagliflozin is in `drugs.py` but is also prescribed for heart failure and CKD 
 - SVH030711 Shanthi Biradar (2003-03-13)
 
 Could be a family, a neighbour's or carer's phone, or a data-entry error. Don't assume "family"; the front desk should confirm who they are reaching before discussing anything clinical on this number.
+
+## Manual spot-check (raw CSVs, by me)
+- SVH028582: last visit 2024-10-31 Diabetology, next appt 2024-11-14, no visits since → overdue 684 days ✓
+- SVH026153: last diabetes visit 2025-11-26 "Review 6 wks", only ENT visit since (2026-08-14) → overdue under option B ✓
+- SVH027082 / SVH030772: same DOB + phone; Jul 2026 visit was thyroid only → still overdue for diabetes, flagged as duplicate ✓
+- SVH029597: HbA1c high, note "reports to be collected", no diabetes drug → doctor review, not called ✓
+- SVH024860: note "Relocated to Hyderabad. Transfer of care letter issued" → not called ✓
